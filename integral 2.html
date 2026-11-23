@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Riemann Integral & Green's Theorem Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for crisp scientific UI icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- KaTeX for publication-grade mathematical formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#080d17',
+                        },
+                        accent: {
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                            violet: '#8b5cf6',
+                            amber: '#f59e0b',
+                            rose: '#f43f5e'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar & Glassmorphism refinements */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #080d17;
+            color: #f8fafc;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(6, 182, 212, 0.35);
+            background: rgba(30, 41, 59, 0.75);
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #06b6d4;
+            border: 2px solid #ffffff;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.8);
+            transition: transform 0.15s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.18);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        /* Custom Scrollbar for sidebar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.6);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(6, 182, 212, 0.7);
+        }
+
+        canvas {
+            touch-action: none;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+
+    <!-- Top Navigation Bar -->
+    <header class="glass-panel sticky top-0 z-40 px-4 py-3 sm:px-6 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-600 to-violet-600 flex items-center justify-center shadow-lg shadow-cyan-500/25">
+                <span class="font-mono font-bold text-xl text-white">∫</span>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-cyan-100 to-cyan-400 bg-clip-text text-transparent">
+                        Riemann Integral Studio
+                    </h1>
+                    <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                        GREEN'S THEOREM ENGINE
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 hidden sm:block">Freehand Planar Domain Integration & Partition Convergence Visualizer</p>
+            </div>
+        </div>
+
+        <!-- Quick Action Toolbar -->
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Preset Shapes Dropdown / Buttons -->
+            <div class="flex items-center bg-slate-900/90 rounded-xl p-1 border border-slate-800">
+                <button onclick="loadPreset('circle')" title="Load Circle Preset" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i class="fa-regular fa-circle text-cyan-400"></i>
+                    <span class="hidden md:inline">Circle</span>
+                </button>
+                <button onclick="loadPreset('ellipse')" title="Load Ellipse Preset" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-egg text-emerald-400"></i>
+                    <span class="hidden md:inline">Ellipse</span>
+                </button>
+                <button onclick="loadPreset('star')" title="Load Non-Convex Star Preset" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i class="fa-regular fa-star text-amber-400"></i>
+                    <span class="hidden md:inline">Star</span>
+                </button>
+                <button onclick="loadPreset('heart')" title="Load Parametric Heart Preset" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i class="fa-regular fa-heart text-rose-400"></i>
+                    <span class="hidden md:inline">Cardioid</span>
+                </button>
+                <button onclick="loadPreset('blob')" title="Load Organic Wave Domain" class="px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-water text-violet-400"></i>
+                    <span class="hidden md:inline">Wave</span>
+                </button>
+            </div>
+
+            <button onclick="toggleTheoryModal()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-square-root-variable"></i>
+                <span>Math Proof</span>
+            </button>
+
+            <button onclick="clearCanvas()" class="px-3 py-2 rounded-xl text-xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Clear</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace: Responsive Split Screen -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+        <!-- Left / Center Interactive Canvas Container -->
+        <div class="relative flex-1 min-h-[55vh] lg:min-h-0 flex flex-col bg-slate-950" id="canvasWrapper">
+            <canvas id="riemannCanvas" class="w-full h-full block"></canvas>
+
+            <!-- Floating Top-Left HUD: Live Coordinates & Auto-Close Status -->
+            <div class="absolute top-4 left-4 pointer-events-none flex flex-col gap-2 max-w-[90vw]">
+                <div class="glass-panel px-3.5 py-2 rounded-xl flex items-center gap-3 text-xs font-mono">
+                    <div class="flex items-center gap-1.5">
+                        <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="statusText" class="text-slate-200 font-semibold">READY TO DRAW</span>
+                    </div>
+                    <span class="text-slate-600">|</span>
+                    <div class="text-slate-400">
+                        Cursor: <span id="cursorCoords" class="text-cyan-300">(0.00, 0.00)</span>
+                    </div>
+                    <span class="hidden sm:inline text-slate-600">|</span>
+                    <div class="hidden sm:block text-slate-400">
+                        Scale: <span class="text-slate-200">1 unit = 50 px</span>
+                    </div>
+                </div>
+
+                <!-- Auto-Closure Notification Banner (Appears when open curve is auto-closed) -->
+                <div id="autoCloseBadge" class="hidden glass-panel px-3.5 py-2 rounded-xl border-amber-500/40 bg-amber-950/40 text-amber-200 text-xs flex items-center gap-2 shadow-lg transition-all duration-300">
+                    <i class="fa-solid fa-link text-amber-400"></i>
+                    <span>Open contour detected — automatically closed via geodesic segment $\overline{P_{\text{end}}P_{\text{start}}}$</span>
+                </div>
+            </div>
+
+            <!-- Floating Bottom-Left Legend & Canvas View Toggles -->
+            <div class="absolute bottom-4 left-4 right-4 sm:right-auto flex flex-wrap items-center gap-2 z-10">
+                <div class="glass-panel px-3 py-2 rounded-xl flex flex-wrap items-center gap-3 text-xs">
+                    <label class="flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white">
+                        <input type="checkbox" id="toggleStrips" checked onchange="render()" class="accent-cyan-500 rounded cursor-pointer">
+                        <span>Riemann Strips</span>
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white">
+                        <input type="checkbox" id="toggleSampleDots" checked onchange="render()" class="accent-cyan-500 rounded cursor-pointer">
+                        <span>Sample Points</span>
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white">
+                        <input type="checkbox" id="toggleGrid" checked onchange="render()" class="accent-cyan-500 rounded cursor-pointer">
+                        <span>Cartesian Grid</span>
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white">
+                        <input type="checkbox" id="toggleCentroid" checked onchange="render()" class="accent-cyan-500 rounded cursor-pointer">
+                        <span>Centroid $(\bar{x}, \bar{y})$</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Empty State Instruction Overlay -->
+            <div id="emptyHint" class="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
+                <div class="glass-panel px-6 py-5 rounded-2xl max-w-md text-center border border-cyan-500/25 shadow-2xl">
+                    <div class="w-12 h-12 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center mx-auto mb-3 text-cyan-400 text-xl">
+                        <i class="fa-solid fa-pen-nib"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1">Draw Any Closed or Open Curve</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                        Click and drag anywhere on the Cartesian plane. Even if you leave the path open, the engine will automatically connect $P_{\text{end}} \to P_{\text{start}}$ with a straight segment and compute the exact Riemann integral.
+                    </p>
+                    <div class="inline-flex items-center gap-2 text-[11px] font-mono text-cyan-300 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-500/20">
+                        <span>Supports concave, multi-lobed & self-intersecting loops</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Control & Telemetry Inspector Panel -->
+        <aside class="w-full lg:w-[410px] xl:w-[440px] glass-panel border-t lg:border-t-0 lg:border-l border-slate-800/90 flex flex-col overflow-y-auto max-h-none lg:max-h-[calc(100vh-65px)] z-20">
+            <div class="p-4 sm:p-5 space-y-5">
+
+                <!-- Primary Area Readout Cards -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">Computed Planar Area</span>
+                        <span id="convergenceBadge" class="px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            Accuracy: 99.8%
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Riemann Sum Approximation -->
+                        <div class="glass-card p-3.5 rounded-2xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-cyan-500/10 rounded-bl-full -mr-4 -mt-4"></div>
+                            <div class="text-[11px] text-cyan-300 font-medium flex items-center gap-1.5 mb-1">
+                                <i class="fa-solid fa-chart-column"></i>
+                                <span>Riemann Sum $S_n$</span>
+                            </div>
+                            <div id="riemannAreaVal" class="font-mono text-2xl font-bold text-white tracking-tight">
+                                0.0000
+                            </div>
+                            <div class="text-[10px] font-mono text-slate-400 mt-1">
+                                <span id="riemannPxVal">0</span> px² • <span id="activePartitionLabel">n = 40</span>
+                            </div>
+                        </div>
+
+                        <!-- Exact Integral (Green's Theorem / Limit n -> infinity) -->
+                        <div class="glass-card p-3.5 rounded-2xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full -mr-4 -mt-4"></div>
+                            <div class="text-[11px] text-emerald-300 font-medium flex items-center gap-1.5 mb-1">
+                                <i class="fa-solid fa-infinity"></i>
+                                <span>Exact Integral $\lim_{n\to\infty}$</span>
+                            </div>
+                            <div id="exactAreaVal" class="font-mono text-2xl font-bold text-white tracking-tight">
+                                0.0000
+                            </div>
+                            <div class="text-[10px] font-mono text-slate-400 mt-1">
+                                <span id="exactPxVal">0</span> px² • $\oint x\,dy$
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Metrics Bar -->
+                    <div class="mt-2.5 glass-card px-3.5 py-2.5 rounded-xl flex items-center justify-between text-xs font-mono">
+                        <div>
+                            <span class="text-slate-400">Abs Error $|\Delta A|$:</span>
+                            <span id="absErrorVal" class="text-amber-300 font-semibold ml-1">0.0000</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400">Rel Error:</span>
+                            <span id="relErrorVal" class="text-rose-300 font-semibold ml-1">0.00%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partition Resolution & Riemann Rule Controls -->
+                <div class="glass-card p-4 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label for="partitionsSlider" class="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-cyan-400"></i>
+                            <span>Partition Subintervals ($n$)</span>
+                        </label>
+                        <div class="flex items-center gap-1.5">
+                            <span id="partitionCountDisplay" class="font-mono text-sm font-bold text-cyan-300 bg-cyan-950/80 px-2.5 py-0.5 rounded-lg border border-cyan-500/30">
+                                40
+                            </span>
+                            <button id="animateBtn" onclick="toggleLimitAnimation()" title="Animate n → 250 Convergence" class="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition flex items-center gap-1">
+                                <i id="animateIcon" class="fa-solid fa-play text-[10px]"></i>
+                                <span>Limit</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <input type="range" id="partitionsSlider" min="4" max="250" value="40" oninput="handlePartitionChange(this.value)">
+                        <div class="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+                            <span>n = 4 (Coarse)</span>
+                            <span>n = 100</span>
+                            <span>n = 250 (Fine)</span>
+                        </div>
+                    </div>
+
+                    <!-- Riemann Sampling Rule Selector -->
+                    <div>
+                        <div class="text-xs font-semibold text-slate-200 mb-2 flex items-center justify-between">
+                            <span>Riemann Sampling Rule</span>
+                            <span id="ruleFormulaBadge" class="font-mono text-[11px] text-cyan-400">xᵢ* = (xᵢ₋₁ + xᵢ)/2</span>
+                        </div>
+                        <div class="grid grid-cols-5 gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+                            <button onclick="setSamplingRule('midpoint')" data-rule="midpoint" class="rule-btn active py-1.5 px-1 rounded-lg text-[11px] font-semibold transition bg-cyan-500 text-slate-950 shadow">
+                                Midpoint
+                            </button>
+                            <button onclick="setSamplingRule('left')" data-rule="left" class="rule-btn py-1.5 px-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white transition">
+                                Left
+                            </button>
+                            <button onclick="setSamplingRule('right')" data-rule="right" class="rule-btn py-1.5 px-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white transition">
+                                Right
+                            </button>
+                            <button onclick="setSamplingRule('upper')" data-rule="upper" class="rule-btn py-1.5 px-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white transition" title="Upper Darboux Sum">
+                                Upper
+                            </button>
+                            <button onclick="setSamplingRule('lower')" data-rule="lower" class="rule-btn py-1.5 px-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white transition" title="Lower Darboux Sum">
+                                Lower
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Convergence Curve Chart (S_n vs n) -->
+                <div class="glass-card p-4 rounded-2xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                            <span>Convergence Plot: $S_n$ vs $n$</span>
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-400">Dashed = Exact Area</span>
+                    </div>
+                    <div class="w-full h-32 bg-slate-950/80 rounded-xl border border-slate-800/80 overflow-hidden relative">
+                        <canvas id="convergenceCanvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Geometric & Differential Properties -->
+                <div class="glass-card p-4 rounded-2xl space-y-2.5">
+                    <div class="text-xs font-semibold text-slate-200 flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid fa-compass-drafting text-violet-400"></i>
+                        <span>Domain Geometric Invariants</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800/80">
+                            <div class="text-[10px] text-slate-400">Domain Width $\Delta X$</div>
+                            <div id="domainWidthVal" class="text-slate-100 font-semibold mt-0.5">0.00 u</div>
+                        </div>
+                        <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800/80">
+                            <div class="text-[10px] text-slate-400">Strip Step $\Delta x$</div>
+                            <div id="deltaXVal" class="text-cyan-300 font-semibold mt-0.5">0.0000 u</div>
+                        </div>
+                        <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800/80">
+                            <div class="text-[10px] text-slate-400">Perimeter $\oint ds$</div>
+                            <div id="perimeterVal" class="text-slate-100 font-semibold mt-0.5">0.00 u</div>
+                        </div>
+                        <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800/80">
+                            <div class="text-[10px] text-slate-400">Centroid $(\bar{x}, \bar{y})$</div>
+                            <div id="centroidVal" class="text-violet-300 font-semibold mt-0.5">(0.0, 0.0)</div>
+                        </div>
+                    </div>
+
+                    <!-- Auto-Closure Segment Telemetry -->
+                    <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs font-mono">
+                        <span class="text-slate-400">Auto-Closure Segment:</span>
+                        <span id="closureDistVal" class="text-amber-300 font-semibold">0.00 u (Closed)</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Strip Inspector Table -->
+                <div class="glass-card p-4 rounded-2xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                            <i class="fa-solid fa-table-list text-cyan-400"></i>
+                            <span>Partition Strip Telemetry</span>
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-400">Hover canvas strip to inspect</span>
+                    </div>
+                    <div id="hoveredStripInfo" class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 font-mono text-xs space-y-1">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Strip Index $i$:</span>
+                            <span id="stripIdx" class="text-white">—</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Sample $x_i^*$:</span>
+                            <span id="stripX" class="text-cyan-300">—</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Chord Height $\sum [y_{\text{top}} - y_{\text{bot}}]$:</span>
+                            <span id="stripH" class="text-emerald-300">—</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Strip Area $\Delta A_i = h(x_i^*)\Delta x$:</span>
+                            <span id="stripArea" class="text-amber-300 font-bold">—</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+    </main>
+
+    <!-- Mathematical Formulation Modal (For Competition Presentation) -->
+    <div id="theoryModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel max-w-2xl w-full rounded-3xl p-6 sm:p-8 border border-cyan-500/30 shadow-2xl max-h-[90vh] overflow-y-auto relative">
+            <button onclick="toggleTheoryModal()" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300 font-mono font-bold text-lg">
+                    ∑
+                </div>
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-white">Mathematical Architecture</h2>
+                    <p class="text-xs text-slate-400">How arbitrary closed & open freehand contours are integrated</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                    <h3 class="text-cyan-300 font-semibold mb-1.5 text-xs uppercase tracking-wider">1. Automatic Contour Closure (Jordan Curve Completion)</h3>
+                    <p class="text-xs text-slate-300">
+                        Let the user's drawn stroke be a sequence of vertices $P_0, P_1, \dots, P_m \in \mathbb{R}^2$. If $\|P_m - P_0\| > \epsilon$, the engine appends a linear closing segment $\gamma_{\text{close}}(t) = (1-t)P_m + tP_0$ for $t \in [0,1]$, guaranteeing a closed piecewise-linear Jordan contour $\partial \Omega$.
+                    </p>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                    <h3 class="text-emerald-300 font-semibold mb-1.5 text-xs uppercase tracking-wider">2. Vertical Scanline Riemann Partitioning (Handles Concave Loops)</h3>
+                    <p class="text-xs text-slate-300 mb-2">
+                        Partition $[x_{\min}, x_{\max}]$ into $n$ subintervals of width $\Delta x = \frac{x_{\max} - x_{\min}}{n}$. For any sample abscissa $x_i^* \in [x_{i-1}, x_i]$, the vertical line $x = x_i^*$ intersects $\partial \Omega$ at sorted ordinates $y_1 \le y_2 \le \dots \le y_{2k}$. By the even-odd winding rule, the vertical cross-sectional length is:
+                    </p>
+                    <div class="bg-slate-950 p-2.5 rounded-xl font-mono text-xs text-center text-cyan-200 border border-slate-800">
+                        $$h(x_i^*) = \sum_{j=1}^{k} \left( y_{2j}(x_i^*) - y_{2j-1}(x_i^*) \right), \quad S_n = \sum_{i=1}^{n} h(x_i^*) \Delta x$$
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                    <h3 class="text-violet-300 font-semibold mb-1.5 text-xs uppercase tracking-wider">3. Exact Limit via Green's Theorem</h3>
+                    <p class="text-xs text-slate-300 mb-2">
+                        As $n \to \infty$, the Riemann sum converges to the double integral $\iint_\Omega dA$, which by Green's Theorem equals the boundary line integral:
+                    </p>
+                    <div class="bg-slate-950 p-2.5 rounded-xl font-mono text-xs text-center text-emerald-200 border border-slate-800">
+                        $$A = \lim_{n \to \infty} \sum_{i=1}^{n} h(x_i^*) \Delta x = \frac{1}{2} \oint_{\partial \Omega} (x\,dy - y\,dx) = \frac{1}{2} \left| \sum_{k=0}^{m} (x_k y_{k+1} - x_{k+1} y_k) \right|$$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * RIEMANN INTEGRAL & GREEN'S THEOREM VISUALIZATION ENGINE
+         * ============================================================================
+         * Features:
+         * - Smooth freehand pointer/touch capture with dynamic distance filtering
+         * - Automatic straight-line closure from end point back to start point
+         * - Exact analytical area, perimeter & centroid via Green's Theorem
+         * - Multi-interval scanline intersection solver for arbitrary non-convex shapes
+         * - Midpoint, Left, Right, Upper Darboux, and Lower Darboux Riemann sums
+         * - Real-time convergence curve plotter & interactive strip inspector
+         */
+
+        // Canvas & Context References
+        const canvas = document.getElementById('riemannCanvas');
+        const ctx = canvas.getContext('2d');
+        const convCanvas = document.getElementById('convergenceCanvas');
+        const convCtx = convCanvas.getContext('2d');
+
+        // Coordinate System Constants
+        const PIXELS_PER_UNIT = 50; // 50px = 1.00 mathematical unit
+
+        // Application State
+        const state = {
+            rawPoints: [],          // Points captured during active stroke [{x, y}] in pixel space
+            closedPolygon: [],      // Final closed polygon vertices [{x, y}]
+            isDrawing: false,
+            wasAutoClosed: false,
+            closureSegment: null,   // {start: {x,y}, end: {x,y}, lengthUnits: number}
+            numPartitions: 40,
+            samplingRule: 'midpoint', // 'midpoint' | 'left' | 'right' | 'upper' | 'lower'
+            strips: [],             // Computed Riemann strips for current partition count
+            hoveredStripIndex: -1,
+            cursorPos: { x: 0, y: 0 },
+            metrics: {
+                riemannAreaUnits: 0,
+                riemannAreaPx: 0,
+                exactAreaUnits: 0,
+                exactAreaPx: 0,
+                absErrorUnits: 0,
+                relErrorPercent: 0,
+                perimeterUnits: 0,
+                domainWidthUnits: 0,
+                deltaXUnits: 0,
+                centroidMath: { x: 0, y: 0 },
+                centroidPx: { x: 0, y: 0 }
+            },
+            isAnimatingLimit: false,
+            animationFrameId: null
+        };
+
+        // ============================================================================
+        // INITIALIZATION & RESPONSIVE RESIZING
+        // ============================================================================
+
+        function resizeCanvases() {
+            const wrapper = document.getElementById('canvasWrapper');
+            const dpr = window.devicePixelRatio || 1;
+
+            // Main Canvas
+            const rect = wrapper.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            // Convergence Mini-Chart Canvas
+            const convRect = convCanvas.parentElement.getBoundingClientRect();
+            convCanvas.width = convRect.width * dpr;
+            convCanvas.height = convRect.height * dpr;
+            convCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            // Re-center presets if no user drawing exists yet
+            if (state.closedPolygon.length > 0) {
+                recomputeAll();
+                render();
+            } else {
+                render();
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            resizeCanvases();
+            // Load an inspiring default cardioid/heart or wave shape so user immediately sees it working,
+            // or keep clean with a subtle preset ready. Let's load a smooth cardioid preset on boot!
+            setTimeout(() => {
+                loadPreset('heart');
+            }, 120);
+        });
+
+        // ============================================================================
+        // COORDINATE CONVERSIONS (Screen Pixels <-> Mathematical Cartesian Units)
+        // ============================================================================
+
+        function getOriginPx() {
+            const wrapper = document.getElementById('canvasWrapper');
+            return {
+                x: wrapper.clientWidth / 2,
+                y: wrapper.clientHeight / 2
+            };
+        }
+
+        function screenToMath(px, py) {
+            const origin = getOriginPx();
+            return {
+                x: (px - origin.x) / PIXELS_PER_UNIT,
+                y: (origin.y - py) / PIXELS_PER_UNIT // Invert Y so +Y is up
+            };
+        }
+
+        function mathToScreen(mx, my) {
+            const origin = getOriginPx();
+            return {
+                x: origin.x + mx * PIXELS_PER_UNIT,
+                y: origin.y - my * PIXELS_PER_UNIT
+            };
+        }
+
+        // ============================================================================
+        // POINTER / TOUCH DRAWING & AUTOMATIC CURVE CLOSURE
+        // ============================================================================
+
+        function getPointerCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        canvas.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0 && e.pointerType === 'mouse') return;
+            stopLimitAnimation();
+
+            const pos = getPointerCoords(e);
+            state.isDrawing = true;
+            state.rawPoints = [pos];
+            state.closedPolygon = [];
+            state.strips = [];
+            state.wasAutoClosed = false;
+            state.closureSegment = null;
+            state.hoveredStripIndex = -1;
+
+            document.getElementById('emptyHint').classList.add('hidden');
+            document.getElementById('autoCloseBadge').classList.add('hidden');
+            updateStatusIndicator('DRAWING CONTOUR...', 'bg-cyan-400');
+
+            canvas.setPointerCapture(e.pointerId);
+            render();
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            const pos = getPointerCoords(e);
+            state.cursorPos = pos;
+
+            // Update live cursor coordinates HUD
+            const mathPos = screenToMath(pos.x, pos.y);
+            document.getElementById('cursorCoords').textContent =
+                `(${mathPos.x >= 0 ? '+' : ''}${mathPos.x.toFixed(2)}, ${mathPos.y >= 0 ? '+' : ''}${mathPos.y.toFixed(2)})`;
+
+            if (state.isDrawing) {
+                const lastPt = state.rawPoints[state.rawPoints.length - 1];
+                const dist = Math.hypot(pos.x - lastPt.x, pos.y - lastPt.y);
+
+                // Sample points every 3.5 pixels for ultra-smooth curves without redundant vertices
+                if (dist >= 3.5) {
+                    state.rawPoints.push(pos);
+                    render();
+                }
+            } else if (state.strips.length > 0) {
+                // Interactive strip hover inspection
+                inspectStripAtCursor(pos.x, pos.y);
+            }
+        });
+
+        function finalizeDrawing() {
+            if (!state.isDrawing) return;
+            state.isDrawing = false;
+
+            if (state.rawPoints.length < 3) {
+                // Too few points to form a 2D area
+                state.rawPoints = [];
+                updateStatusIndicator('READY TO DRAW', 'bg-emerald-400');
+                document.getElementById('emptyHint').classList.remove('hidden');
+                render();
+                return;
+            }
+
+            const startPt = state.rawPoints[0];
+            const endPt = state.rawPoints[state.rawPoints.length - 1];
+            const gapPx = Math.hypot(endPt.x - startPt.x, endPt.y - startPt.y);
+            const gapUnits = gapPx / PIXELS_PER_UNIT;
+
+            // Build closed polygon
+            state.closedPolygon = [...state.rawPoints];
+
+            // Check if the user left the curve open (gap > 8 pixels)
+            if (gapPx > 8) {
+                state.wasAutoClosed = true;
+                state.closureSegment = {
+                    start: { ...endPt },
+                    end: { ...startPt },
+                    lengthUnits: gapUnits
+                };
+                // Explicitly connect end point back to start point with a straight line
+                state.closedPolygon.push({ ...startPt });
+
+                const badge = document.getElementById('autoCloseBadge');
+                badge.classList.remove('hidden');
+                if (window.renderMathInElement) renderMathInElement(badge);
+                document.getElementById('closureDistVal').textContent = `${gapUnits.toFixed(2)} u (Auto-Closed)`;
+                document.getElementById('closureDistVal').className = 'text-amber-300 font-semibold';
+            } else {
+                state.wasAutoClosed = false;
+                state.closureSegment = null;
+                state.closedPolygon.push({ ...startPt });
+                document.getElementById('autoCloseBadge').classList.add('hidden');
+                document.getElementById('closureDistVal').textContent = '0.00 u (Naturally Closed)';
+                document.getElementById('closureDistVal').className = 'text-emerald-300 font-semibold';
+            }
+
+            updateStatusIndicator('INTEGRATED', 'bg-emerald-400');
+            recomputeAll();
+            render();
+        }
+
+        canvas.addEventListener('pointerup', finalizeDrawing);
+        canvas.addEventListener('pointercancel', finalizeDrawing);
+
+        // ============================================================================
+        // CORE MATHEMATICAL ENGINE: GREEN'S THEOREM & RIEMANN SCANLINE SOLVER
+        // ============================================================================
+
+        /**
+         * Computes Exact Area, Perimeter, and Centroid of any closed polygon
+         * using Green's Theorem / Shoelace Formula.
+         */
+        function computeExactGreenTheoremMetrics(poly) {
+            let signedArea2 = 0; // 2 * Signed Area
+            let cxSum = 0;
+            let cySum = 0;
+            let perimeterPx = 0;
+
+            const n = poly.length;
+            for (let i = 0; i < n; i++) {
+                const p1 = poly[i];
+                const p2 = poly[(i + 1) % n];
+
+                const cross = (p1.x * p2.y - p2.x * p1.y);
+                signedArea2 += cross;
+                cxSum += (p1.x + p2.x) * cross;
+                cySum += (p1.y + p2.y) * cross;
+
+                perimeterPx += Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            }
+
+            const areaPx = Math.abs(signedArea2) / 2;
+            const areaUnits = areaPx / (PIXELS_PER_UNIT * PIXELS_PER_UNIT);
+            const perimeterUnits = perimeterPx / PIXELS_PER_UNIT;
+
+            let centroidPx = { x: 0, y: 0 };
+            if (Math.abs(signedArea2) > 1e-5) {
+                centroidPx.x = cxSum / (3 * signedArea2);
+                centroidPx.y = cySum / (3 * signedArea2);
+            } else if (n > 0) {
+                centroidPx = { ...poly[0] };
+            }
+
+            return {
+                areaPx,
+                areaUnits,
+                perimeterUnits,
+                centroidPx,
+                centroidMath: screenToMath(centroidPx.x, centroidPx.y)
+            };
+        }
+
+        /**
+         * Finds all vertical intervals [y_bottom, y_top] inside the closed polygon
+         * at a given horizontal coordinate x. Works for arbitrarily concave or
+         * multi-lobed freehand curves!
+         */
+        function getVerticalIntervalsAtX(poly, x) {
+            const yIntersections = [];
+            const n = poly.length;
+
+            for (let i = 0; i < n; i++) {
+                const p1 = poly[i];
+                const p2 = poly[(i + 1) % n];
+
+                // Check if edge crosses vertical line X (half-open interval prevents vertex double counting)
+                if ((p1.x <= x && p2.x > x) || (p2.x <= x && p1.x > x)) {
+                    const t = (x - p1.x) / (p2.x - p1.x);
+                    const y = p1.y + t * (p2.y - p1.y);
+                    yIntersections.push(y);
+                }
+            }
+
+            // Sort intersections from top (smallest screen Y) to bottom (largest screen Y)
+            yIntersections.sort((a, b) => a - b);
+
+            const intervals = [];
+            for (let i = 0; i + 1 < yIntersections.length; i += 2) {
+                intervals.push({
+                    yMin: yIntersections[i],
+                    yMax: yIntersections[i + 1],
+                    heightPx: yIntersections[i + 1] - yIntersections[i]
+                });
+            }
+            return intervals;
+        }
+
+        /**
+         * Computes the Riemann Sum approximation for a given polygon, partition count n,
+         * and sampling rule ('midpoint', 'left', 'right', 'upper', 'lower').
+         */
+        function computeRiemannPartition(poly, nPartitions, rule) {
+            if (poly.length < 3) return { strips: [], totalAreaPx: 0, totalAreaUnits: 0, xMin: 0, xMax: 0, dxPx: 0 };
+
+            let xMin = Infinity;
+            let xMax = -Infinity;
+            for (const pt of poly) {
+                if (pt.x < xMin) xMin = pt.x;
+                if (pt.x > xMax) xMax = pt.x;
+            }
+
+            const domainWidthPx = xMax - xMin;
+            if (domainWidthPx < 1e-4) {
+                return { strips: [], totalAreaPx: 0, totalAreaUnits: 0, xMin, xMax, dxPx: 0 };
+            }
+
+            const dxPx = domainWidthPx / nPartitions;
+            const strips = [];
+            let totalAreaPx = 0;
+
+            for (let i = 0; i < nPartitions; i++) {
+                const xLeft = xMin + i * dxPx;
+                const xRight = xLeft + dxPx;
+                let sampleX = (xLeft + xRight) / 2;
+                let chosenIntervals = [];
+
+                if (rule === 'midpoint') {
+                    sampleX = (xLeft + xRight) / 2;
+                    chosenIntervals = getVerticalIntervalsAtX(poly, sampleX);
+                } else if (rule === 'left') {
+                    // Slight epsilon inward from xMin on first strip so boundary hits cleanly
+                    sampleX = i === 0 ? xLeft + dxPx * 0.001 : xLeft;
+                    chosenIntervals = getVerticalIntervalsAtX(poly, sampleX);
+                } else if (rule === 'right') {
+                    sampleX = i === nPartitions - 1 ? xRight - dxPx * 0.001 : xRight;
+                    chosenIntervals = getVerticalIntervalsAtX(poly, sampleX);
+                } else if (rule === 'upper' || rule === 'lower') {
+                    // Sub-sample 7 points across [xLeft, xRight] to find supremum/infimum height
+                    const subSamples = 7;
+                    let bestHeight = rule === 'upper' ? -Infinity : Infinity;
+                    for (let s = 0; s < subSamples; s++) {
+                        const sx = xLeft + (s / (subSamples - 1)) * dxPx;
+                        const clampedSx = Math.min(xMax - 1e-4, Math.max(xMin + 1e-4, sx));
+                        const ints = getVerticalIntervalsAtX(poly, clampedSx);
+                        const h = ints.reduce((acc, seg) => acc + seg.heightPx, 0);
+                        if ((rule === 'upper' && h > bestHeight) || (rule === 'lower' && h < bestHeight)) {
+                            bestHeight = h;
+                            sampleX = clampedSx;
+                            chosenIntervals = ints;
+                        }
+                    }
+                }
+
+                const totalHeightPx = chosenIntervals.reduce((acc, seg) => acc + seg.heightPx, 0);
+                const stripAreaPx = totalHeightPx * dxPx;
+                totalAreaPx += stripAreaPx;
+
+                strips.push({
+                    index: i + 1,
+                    xLeft,
+                    xRight,
+                    dxPx,
+                    sampleX,
+                    intervals: chosenIntervals,
+                    totalHeightPx,
+                    stripAreaPx,
+                    stripAreaUnits: stripAreaPx / (PIXELS_PER_UNIT * PIXELS_PER_UNIT)
+                });
+            }
+
+            return {
+                strips,
+                totalAreaPx,
+                totalAreaUnits: totalAreaPx / (PIXELS_PER_UNIT * PIXELS_PER_UNIT),
+                xMin,
+                xMax,
+                dxPx
+            };
+        }
+
+        /**
+         * Master recalculation pipeline updating state & HUD telemetry
+         */
+        function recomputeAll() {
+            if (state.closedPolygon.length < 3) return;
+
+            const exact = computeExactGreenTheoremMetrics(state.closedPolygon);
+            const riemann = computeRiemannPartition(state.closedPolygon, state.numPartitions, state.samplingRule);
+
+            state.strips = riemann.strips;
+            const absError = Math.abs(riemann.totalAreaUnits - exact.areaUnits);
+            const relError = exact.areaUnits > 1e-6 ? (absError / exact.areaUnits) * 100 : 0;
+            const accuracy = Math.max(0, 100 - relError);
+
+            const domainWidthUnits = (riemann.xMax - riemann.xMin) / PIXELS_PER_UNIT;
+            const deltaXUnits = riemann.dxPx / PIXELS_PER_UNIT;
+
+            state.metrics = {
+                riemannAreaUnits: riemann.totalAreaUnits,
+                riemannAreaPx: riemann.totalAreaPx,
+                exactAreaUnits: exact.areaUnits,
+                exactAreaPx: exact.areaPx,
+                absErrorUnits: absError,
+                relErrorPercent: relError,
+                perimeterUnits: exact.perimeterUnits,
+                domainWidthUnits,
+                deltaXUnits,
+                centroidMath: exact.centroidMath,
+                centroidPx: exact.centroidPx
+            };
+
+            // Update DOM Telemetry Cards
+            document.getElementById('riemannAreaVal').textContent = riemann.totalAreaUnits.toFixed(4);
+            document.getElementById('riemannPxVal').textContent = Math.round(riemann.totalAreaPx).toLocaleString();
+            document.getElementById('activePartitionLabel').textContent = `n = ${state.numPartitions}`;
+
+            document.getElementById('exactAreaVal').textContent = exact.areaUnits.toFixed(4);
+            document.getElementById('exactPxVal').textContent = Math.round(exact.areaPx).toLocaleString();
+
+            document.getElementById('absErrorVal').textContent = absError.toFixed(4);
+            document.getElementById('relErrorVal').textContent = `${relError.toFixed(2)}%`;
+
+            const accBadge = document.getElementById('convergenceBadge');
+            accBadge.textContent = `Accuracy: ${accuracy.toFixed(2)}%`;
+            if (accuracy >= 99) {
+                accBadge.className = 'px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+            } else if (accuracy >= 95) {
+                accBadge.className = 'px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+            } else {
+                accBadge.className = 'px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+            }
+
+            document.getElementById('domainWidthVal').textContent = `${domainWidthUnits.toFixed(2)} u`;
+            document.getElementById('deltaXVal').textContent = `${deltaXUnits.toFixed(4)} u`;
+            document.getElementById('perimeterVal').textContent = `${exact.perimeterUnits.toFixed(2)} u`;
+            document.getElementById('centroidVal').textContent =
+                `(${exact.centroidMath.x.toFixed(2)}, ${exact.centroidMath.y.toFixed(2)})`;
+
+            renderConvergenceChart();
+        }
+
+        // ============================================================================
+        // RENDERING ENGINE (Main Canvas & Convergence Chart)
+        // ============================================================================
+
+        function render() {
+            const wrapper = document.getElementById('canvasWrapper');
+            const width = wrapper.clientWidth;
+            const height = wrapper.clientHeight;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // 1. Background Grid & Axes
+            if (document.getElementById('toggleGrid').checked) {
+                drawCartesianGrid(width, height);
+            }
+
+            // 2. If currently drawing freehand path
+            if (state.isDrawing && state.rawPoints.length > 0) {
+                drawActiveStroke();
+                return;
+            }
+
+            // 3. If closed polygon exists, render domain fill, Riemann strips, boundary & centroid
+            if (state.closedPolygon.length >= 3) {
+                drawDomainInteriorFill();
+
+                if (document.getElementById('toggleStrips').checked) {
+                    drawRiemannStrips();
+                }
+
+                drawClosedContour();
+
+                if (document.getElementById('toggleCentroid').checked) {
+                    drawCentroidMarker();
+                }
+            }
+        }
+
+        function drawCartesianGrid(width, height) {
+            const origin = getOriginPx();
+
+            // Minor grid lines (every 0.5 units = 25px)
+            const minorStep = PIXELS_PER_UNIT / 2;
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
+            ctx.beginPath();
+            for (let x = origin.x % minorStep; x < width; x += minorStep) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+            }
+            for (let y = origin.y % minorStep; y < height; y += minorStep) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+            }
+            ctx.stroke();
+
+            // Major grid lines (every 1.0 unit = 50px)
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.55)';
+            ctx.beginPath();
+            for (let x = origin.x % PIXELS_PER_UNIT; x < width; x += PIXELS_PER_UNIT) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+            }
+            for (let y = origin.y % PIXELS_PER_UNIT; y < height; y += PIXELS_PER_UNIT) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+            }
+            ctx.stroke();
+
+            // Primary X and Y Axes
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, origin.y);
+            ctx.lineTo(width, origin.y);
+            ctx.moveTo(origin.x, 0);
+            ctx.lineTo(origin.x, height);
+            ctx.stroke();
+
+            // Axis Numeric Labels
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            for (let x = origin.x + PIXELS_PER_UNIT; x < width - 20; x += PIXELS_PER_UNIT) {
+                const unit = Math.round((x - origin.x) / PIXELS_PER_UNIT);
+                ctx.fillText(unit.toString(), x, origin.y + 6);
+            }
+            for (let x = origin.x - PIXELS_PER_UNIT; x > 20; x -= PIXELS_PER_UNIT) {
+                const unit = Math.round((x - origin.x) / PIXELS_PER_UNIT);
+                ctx.fillText(unit.toString(), x, origin.y + 6);
+            }
+
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            for (let y = origin.y - PIXELS_PER_UNIT; y > 20; y -= PIXELS_PER_UNIT) {
+                const unit = Math.round((origin.y - y) / PIXELS_PER_UNIT);
+                ctx.fillText(unit.toString(), origin.x - 8, y);
+            }
+            for (let y = origin.y + PIXELS_PER_UNIT; y < height - 20; y += PIXELS_PER_UNIT) {
+                const unit = Math.round((origin.y - y) / PIXELS_PER_UNIT);
+                ctx.fillText(unit.toString(), origin.x - 8, y);
+            }
+        }
+
+        function drawActiveStroke() {
+            const pts = state.rawPoints;
+            if (pts.length === 0) return;
+
+            // Draw live freehand path
+            ctx.save();
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowColor = 'rgba(6, 182, 212, 0.6)';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (let i = 1; i < pts.length; i++) {
+                ctx.lineTo(pts[i].x, pts[i].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // Draw dashed preview of the auto-closing line back to P_start!
+            const startPt = pts[0];
+            const endPt = pts[pts.length - 1];
+            if (pts.length > 2) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.75)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.beginPath();
+                ctx.moveTo(endPt.x, endPt.y);
+                ctx.lineTo(startPt.x, startPt.y);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Highlight Start Point Anchor P_0
+            ctx.save();
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(startPt.x, startPt.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ecfdf5';
+            ctx.font = '600 11px "JetBrains Mono", monospace';
+            ctx.fillText('P_start', startPt.x + 10, startPt.y - 8);
+            ctx.restore();
+        }
+
+        function drawDomainInteriorFill() {
+            const poly = state.closedPolygon;
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(poly[0].x, poly[0].y);
+            for (let i = 1; i < poly.length; i++) {
+                ctx.lineTo(poly[i].x, poly[i].y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawRiemannStrips() {
+            const showDots = document.getElementById('toggleSampleDots').checked;
+
+            ctx.save();
+            for (let i = 0; i < state.strips.length; i++) {
+                const strip = state.strips[i];
+                const isHovered = (i === state.hoveredStripIndex);
+
+                for (const seg of strip.intervals) {
+                    if (seg.heightPx <= 0.2) continue;
+
+                    // Gradient fill inside each Riemann rectangle
+                    const grad = ctx.createLinearGradient(strip.xLeft, seg.yMin, strip.xLeft, seg.yMax);
+                    if (isHovered) {
+                        grad.addColorStop(0, 'rgba(245, 158, 11, 0.65)');
+                        grad.addColorStop(1, 'rgba(245, 158, 11, 0.30)');
+                    } else {
+                        grad.addColorStop(0, 'rgba(6, 182, 212, 0.36)');
+                        grad.addColorStop(1, 'rgba(16, 185, 129, 0.22)');
+                    }
+
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(strip.xLeft, seg.yMin, strip.dxPx, seg.heightPx);
+
+                    // Crisp vertical rectangle border
+                    ctx.strokeStyle = isHovered
+                        ? 'rgba(251, 191, 36, 0.95)'
+                        : 'rgba(34, 211, 238, 0.55)';
+                    ctx.lineWidth = isHovered ? 1.8 : (state.numPartitions > 120 ? 0.5 : 1.0);
+                    ctx.strokeRect(strip.xLeft, seg.yMin, strip.dxPx, seg.heightPx);
+
+                    // Sample point indicator dots on top & bottom boundaries
+                    if (showDots && state.numPartitions <= 90) {
+                        ctx.fillStyle = isHovered ? '#fbbf24' : '#f8fafc';
+                        ctx.beginPath();
+                        ctx.arc(strip.sampleX, seg.yMin, isHovered ? 3.5 : 2.1, 0, Math.PI * 2);
+                        ctx.arc(strip.sampleX, seg.yMax, isHovered ? 3.5 : 2.1, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawClosedContour() {
+            const poly = state.closedPolygon;
+            if (poly.length < 2) return;
+
+            // Draw the main user-drawn curve
+            const userLimit = state.wasAutoClosed ? poly.length - 1 : poly.length;
+
+            ctx.save();
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 2.6;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowColor = 'rgba(6, 182, 212, 0.45)';
+            ctx.shadowBlur = 8;
+
+            ctx.beginPath();
+            ctx.moveTo(poly[0].x, poly[0].y);
+            for (let i = 1; i < userLimit; i++) {
+                ctx.lineTo(poly[i].x, poly[i].y);
+            }
+            if (!state.wasAutoClosed) {
+                ctx.closePath();
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // If auto-closed, highlight the connecting straight line segment in glowing amber
+            if (state.wasAutoClosed && state.closureSegment) {
+                const { start, end } = state.closureSegment;
+                ctx.save();
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2.8;
+                ctx.setLineDash([7, 5]);
+                ctx.shadowColor = 'rgba(245, 158, 11, 0.7)';
+                ctx.shadowBlur = 10;
+
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+                ctx.restore();
+
+                // Draw endpoint nodes P_start and P_end
+                drawEndpointNode(end, '#10b981', 'P_start');
+                drawEndpointNode(start, '#f59e0b', 'P_end');
+            }
+        }
+
+        function drawEndpointNode(pt, color, label) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '600 10px "JetBrains Mono", monospace';
+            ctx.fillText(label, pt.x + 8, pt.y - 6);
+            ctx.restore();
+        }
+
+        function drawCentroidMarker() {
+            const c = state.metrics.centroidPx;
+            if (!c || (c.x === 0 && c.y === 0)) return;
+
+            ctx.save();
+            ctx.strokeStyle = '#a78bfa';
+            ctx.fillStyle = '#8b5cf6';
+            ctx.lineWidth = 1.8;
+
+            // Crosshair
+            ctx.beginPath();
+            ctx.moveTo(c.x - 8, c.y);
+            ctx.lineTo(c.x + 8, c.y);
+            ctx.moveTo(c.x, c.y - 8);
+            ctx.lineTo(c.x, c.y + 8);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ddd6fe';
+            ctx.font = '600 10px "JetBrains Mono", monospace';
+            ctx.fillText('Centroid', c.x + 10, c.y + 4);
+            ctx.restore();
+        }
+
+        /**
+         * Renders the live S_n vs n convergence graph in the sidebar
+         */
+        function renderConvergenceChart() {
+            const parent = convCanvas.parentElement;
+            const w = parent.clientWidth;
+            const h = parent.clientHeight;
+            convCtx.clearRect(0, 0, w, h);
+
+            if (state.closedPolygon.length < 3) return;
+
+            const exactArea = state.metrics.exactAreaUnits;
+            if (exactArea <= 1e-6) return;
+
+            // Sample partition counts from n=4 to n=160
+            const sampleNs = [4, 8, 12, 18, 25, 35, 50, 70, 100, 140, 180];
+            const points = sampleNs.map(n => {
+                const res = computeRiemannPartition(state.closedPolygon, n, state.samplingRule);
+                return { n, area: res.totalAreaUnits };
+            });
+
+            let minVal = exactArea * 0.75;
+            let maxVal = exactArea * 1.25;
+            for (const p of points) {
+                if (p.area < minVal) minVal = p.area * 0.95;
+                if (p.area > maxVal) maxVal = p.area * 1.05;
+            }
+            const span = Math.max(0.01, maxVal - minVal);
+
+            const padL = 10, padR = 10, padT = 14, padB = 14;
+            const plotW = w - padL - padR;
+            const plotH = h - padT - padB;
+
+            const mapX = (n) => padL + ((n - 4) / (180 - 4)) * plotW;
+            const mapY = (val) => padT + plotH - ((val - minVal) / span) * plotH;
+
+            // Draw Exact Area Horizontal Reference Line
+            const exactY = mapY(exactArea);
+            convCtx.save();
+            convCtx.strokeStyle = 'rgba(16, 185, 129, 0.75)';
+            convCtx.lineWidth = 1.2;
+            convCtx.setLineDash([4, 4]);
+            convCtx.beginPath();
+            convCtx.moveTo(padL, exactY);
+            convCtx.lineTo(w - padR, exactY);
+            convCtx.stroke();
+            convCtx.restore();
+
+            // Draw S_n Curve
+            convCtx.save();
+            convCtx.strokeStyle = '#06b6d4';
+            convCtx.lineWidth = 2;
+            convCtx.beginPath();
+            points.forEach((pt, idx) => {
+                const px = mapX(pt.n);
+                const py = mapY(pt.area);
+                if (idx === 0) convCtx.moveTo(px, py);
+                else convCtx.lineTo(px, py);
+            });
+            convCtx.stroke();
+
+            // Highlight Current N Marker on Curve
+            const clampedN = Math.min(180, Math.max(4, state.numPartitions));
+            const currX = mapX(clampedN);
+            const currY = mapY(state.metrics.riemannAreaUnits);
+
+            convCtx.fillStyle = '#f59e0b';
+            convCtx.beginPath();
+            convCtx.arc(currX, currY, 4.5, 0, Math.PI * 2);
+            convCtx.fill();
+            convCtx.strokeStyle = '#ffffff';
+            convCtx.lineWidth = 1.5;
+            convCtx.stroke();
+            convCtx.restore();
+        }
+
+        // ============================================================================
+        // INTERACTIVE CONTROLS, STRIP INSPECTION & PRESET GENERATORS
+        // ============================================================================
+
+        function inspectStripAtCursor(px, py) {
+            let foundIdx = -1;
+            for (let i = 0; i < state.strips.length; i++) {
+                const s = state.strips[i];
+                if (px >= s.xLeft && px <= s.xRight) {
+                    foundIdx = i;
+                    break;
+                }
+            }
+
+            if (foundIdx !== state.hoveredStripIndex) {
+                state.hoveredStripIndex = foundIdx;
+                if (foundIdx !== -1) {
+                    const s = state.strips[foundIdx];
+                    const mathX = screenToMath(s.sampleX, 0).x;
+                    const heightUnits = s.totalHeightPx / PIXELS_PER_UNIT;
+
+                    document.getElementById('stripIdx').textContent = `#${s.index} of ${state.numPartitions}`;
+                    document.getElementById('stripX').textContent = `${mathX.toFixed(3)} u`;
+                    document.getElementById('stripH').textContent = `${heightUnits.toFixed(3)} u`;
+                    document.getElementById('stripArea').textContent = `${s.stripAreaUnits.toFixed(4)} u²`;
+                } else {
+                    document.getElementById('stripIdx').textContent = '—';
+                    document.getElementById('stripX').textContent = '—';
+                    document.getElementById('stripH').textContent = '—';
+                    document.getElementById('stripArea').textContent = '—';
+                }
+                render();
+            }
+        }
+
+        function handlePartitionChange(val) {
+            state.numPartitions = parseInt(val, 10);
+            document.getElementById('partitionCountDisplay').textContent = state.numPartitions;
+            recomputeAll();
+            render();
+        }
+
+        function setSamplingRule(rule) {
+            state.samplingRule = rule;
+
+            // Update button active styles
+            document.querySelectorAll('.rule-btn').forEach(btn => {
+                if (btn.dataset.rule === rule) {
+                    btn.className = 'rule-btn active py-1.5 px-1 rounded-lg text-[11px] font-semibold transition bg-cyan-500 text-slate-950 shadow';
+                } else {
+                    btn.className = 'rule-btn py-1.5 px-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white transition';
+                }
+            });
+
+            const formulas = {
+                midpoint: 'xᵢ* = (xᵢ₋₁ + xᵢ)/2',
+                left: 'xᵢ* = xᵢ₋₁',
+                right: 'xᵢ* = xᵢ',
+                upper: 'sup h(x) on [xᵢ₋₁, xᵢ]',
+                lower: 'inf h(x) on [xᵢ₋₁, xᵢ]'
+            };
+            document.getElementById('ruleFormulaBadge').textContent = formulas[rule];
+
+            recomputeAll();
+            render();
+        }
+
+        function toggleLimitAnimation() {
+            if (state.isAnimatingLimit) {
+                stopLimitAnimation();
+                return;
+            }
+            if (state.closedPolygon.length < 3) return;
+
+            state.isAnimatingLimit = true;
+            document.getElementById('animateIcon').className = 'fa-solid fa-pause text-[10px]';
+            let currentN = 4;
+            const slider = document.getElementById('partitionsSlider');
+
+            function step() {
+                if (!state.isAnimatingLimit) return;
+                slider.value = currentN;
+                handlePartitionChange(currentN);
+
+                if (currentN < 250) {
+                    currentN += currentN < 50 ? 1 : 3;
+                    state.animationFrameId = requestAnimationFrame(step);
+                } else {
+                    stopLimitAnimation();
+                }
+            }
+            state.animationFrameId = requestAnimationFrame(step);
+        }
+
+        function stopLimitAnimation() {
+            state.isAnimatingLimit = false;
+            if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
+            document.getElementById('animateIcon').className = 'fa-solid fa-play text-[10px]';
+        }
+
+        function clearCanvas() {
+            stopLimitAnimation();
+            state.rawPoints = [];
+            state.closedPolygon = [];
+            state.strips = [];
+            state.wasAutoClosed = false;
+            state.closureSegment = null;
+            state.hoveredStripIndex = -1;
+
+            document.getElementById('emptyHint').classList.remove('hidden');
+            document.getElementById('autoCloseBadge').classList.add('hidden');
+            updateStatusIndicator('READY TO DRAW', 'bg-emerald-400');
+
+            // Reset telemetry displays
+            document.getElementById('riemannAreaVal').textContent = '0.0000';
+            document.getElementById('riemannPxVal').textContent = '0';
+            document.getElementById('exactAreaVal').textContent = '0.0000';
+            document.getElementById('exactPxVal').textContent = '0';
+            document.getElementById('absErrorVal').textContent = '0.0000';
+            document.getElementById('relErrorVal').textContent = '0.00%';
+            document.getElementById('domainWidthVal').textContent = '0.00 u';
+            document.getElementById('deltaXVal').textContent = '0.0000 u';
+            document.getElementById('perimeterVal').textContent = '0.00 u';
+            document.getElementById('centroidVal').textContent = '(0.0, 0.0)';
+            document.getElementById('closureDistVal').textContent = '0.00 u (Closed)';
+
+            convCtx.clearRect(0, 0, convCanvas.width, convCanvas.height);
+            render();
+        }
+
+        function updateStatusIndicator(text, dotClass) {
+            document.getElementById('statusText').textContent = text;
+            document.getElementById('statusDot').className = `w-2.5 h-2.5 rounded-full ${dotClass} animate-pulse`;
+        }
+
+        function toggleTheoryModal() {
+            const modal = document.getElementById('theoryModal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden') && window.renderMathInElement) {
+                renderMathInElement(modal);
+            }
+        }
+
+        /**
+         * Generates parametric analytical curves for instant demonstration & benchmarking
+         */
+        function loadPreset(type) {
+            stopLimitAnimation();
+            const pts = [];
+            const steps = 180;
+
+            for (let i = 0; i <= steps; i++) {
+                const t = (i / steps) * Math.PI * 2;
+                let mx = 0, my = 0;
+
+                if (type === 'circle') {
+                    // Circle of radius R = 3.0 units (Exact Area = pi * 9 = 28.2743)
+                    const R = 3.0;
+                    mx = R * Math.cos(t);
+                    my = R * Math.sin(t);
+                } else if (type === 'ellipse') {
+                    // Ellipse a = 4.2, b = 2.4 (Exact Area = pi * a * b = 31.6673)
+                    mx = 4.2 * Math.cos(t);
+                    my = 2.4 * Math.sin(t);
+                } else if (type === 'star') {
+                    // 5-pointed non-convex star
+                    const r = 2.6 + 1.25 * Math.cos(5 * t);
+                    mx = r * Math.cos(t);
+                    my = r * Math.sin(t);
+                } else if (type === 'heart') {
+                    // Classic parametric cardioid/heart curve
+                    const scale = 0.22;
+                    mx = scale * (16 * Math.pow(Math.sin(t), 3));
+                    my = scale * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) + 0.4;
+                } else if (type === 'blob') {
+                    // Multi-frequency Fourier harmonic domain
+                    const r = 2.7 + 0.65 * Math.sin(3 * t) + 0.45 * Math.cos(4 * t);
+                    mx = r * Math.cos(t);
+                    my = r * Math.sin(t);
+                }
+
+                pts.push(mathToScreen(mx, my));
+            }
+
+            state.rawPoints = pts;
+            state.closedPolygon = pts;
+            state.wasAutoClosed = false;
+            state.closureSegment = null;
+            state.hoveredStripIndex = -1;
+
+            document.getElementById('emptyHint').classList.add('hidden');
+            document.getElementById('autoCloseBadge').classList.add('hidden');
+            document.getElementById('closureDistVal').textContent = '0.00 u (Parametric Closed)';
+            document.getElementById('closureDistVal').className = 'text-emerald-300 font-semibold';
+
+            updateStatusIndicator(`PRESET: ${type.toUpperCase()}`, 'bg-cyan-400');
+            recomputeAll();
+            render();
+        }
+    </script>
+</body>
+</html>
